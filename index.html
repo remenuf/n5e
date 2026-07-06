@@ -3,372 +3,40 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ficha Naruto 5e</title>
+<title>Naruto 5e - Personagens</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<div class="sheet">
-  <div class="topbar">
+<div class="list-page">
+  <div class="list-header">
     <h1>Naruto 5e</h1>
     <div class="action-bar">
-      <button class="btn btn-g" id="btn-export">Exportar</button>
-      <button class="btn" id="btn-import">Importar</button>
+      <button class="btn btn-g" id="btn-new">+ Novo Personagem</button>
+      <button class="btn" id="btn-import">Importar JSON</button>
       <input type="file" id="import-file" accept=".json" style="display:none">
-      <button class="btn btn-r" id="btn-reset">Reset</button>
     </div>
   </div>
-  <div class="tabs">
-    <button class="tab on" data-tab="tab-p">Principal</button>
-    <button class="tab" data-tab="tab-a">Aparência</button>
-    <button class="tab" data-tab="tab-i">Inventário</button>
-    <button class="tab" data-tab="tab-n">Anotações</button>
-    <button class="tab" data-tab="tab-t">Turno</button>
+
+  <div class="list-status" id="list-status"></div>
+
+  <div class="char-grid" id="char-grid">
+    <div class="list-loading">Carregando personagens...</div>
   </div>
 
-  <!-- PRINCIPAL -->
-  <div id="tab-p" class="tabc on">
-    <div class="sheet-layout">
-      <div class="col-main">
-        <div class="header-grid">
-          <div class="card"><div class="row3 cols4">
-            <div><span class="il">Nome</span><input type="text" id="char-nome"></div>
-            <div><span class="il">Classe</span><input type="text" id="char-classe"></div>
-            <div><span class="il">Nv</span><input type="number" id="char-nivel" min="1"></div>
-            <div><span class="il">Prof</span><input type="number" id="char-prof" min="1"></div>
-          </div></div>
-          <div class="header-mid">
-            <div class="img-box" id="char-img-box">
-              <div class="img-container" id="char-img-container">
-                <img id="char-img" style="display:none">
-                <span class="img-placeholder">+</span>
-              </div>
-            </div>
-            <div class="header-rows">
-              <div class="card"><div class="row3 cols3">
-                <div><span class="il">Clã</span><input type="text" id="char-cla"></div>
-                <div><span class="il">Sub-Classe</span><input type="text" id="char-subclasse"></div>
-                <div><span class="il">Vila</span><input type="text" id="char-vila"></div>
-              </div></div>
-              <div class="card"><div class="row3 cols2">
-                <div><span class="il">Antecedente</span><input type="text" id="char-antecedente"></div>
-                <div class="xp-group"><span class="il">XP</span><div style="display:flex;align-items:center;gap:4px"><input type="number" id="char-xp" min="0"> / <input type="number" id="char-xp-max" min="1"></div></div>
-              </div></div>
-              <div class="card defesa-card">
-                <h2>Defesa</h2>
-                <div class="defesa-row">
-                  <div class="defesa-field"><span class="il">Natural</span><input type="number" id="ca-natural" value="10" readonly></div>
-                  <span class="defesa-op">+</span>
-                  <div class="defesa-field"><span class="il">Armadura</span><input type="number" id="ca-armadura" readonly></div>
-                  <span class="defesa-op">+</span>
-                  <div class="defesa-field"><span class="il">Prof</span><input type="number" id="ca-prof-val" min="0"></div>
-                  <span class="defesa-op">+</span>
-                  <div class="defesa-field"><span class="il">Atrib</span><select id="ca-atrib"><option value="for">FOR</option><option value="des" selected>DES</option><option value="con">CON</option><option value="int">INT</option><option value="sab">SAB</option><option value="car">CAR</option></select></div>
-                  <span class="defesa-op">+</span>
-                  <div class="defesa-field"><span class="il">Outros</span><input type="number" id="ca-outros" min="0"></div>
-                  <span class="defesa-op">=</span>
-                  <div class="defesa-field defesa-total"><span class="il">Total</span><input type="number" id="ca-total" readonly></div>
-                </div>
-              </div>
-              <div class="flex-row">
-                <div class="card">
-                  <h2 class="nowrap">Teste de Morte</h2>
-                  <div class="death-area">
-                    <div class="death-row"><label>Sucesso</label><span class="dot ys" id="death-success-0" data-type="success" data-idx="0"></span><span class="dot ys" id="death-success-1" data-type="success" data-idx="1"></span><span class="dot ys" id="death-success-2" data-type="success" data-idx="2"></span></div>
-                    <div class="death-row"><label>Falha</label><span class="dot fls" id="death-fail-0" data-type="fail" data-idx="0"></span><span class="dot fls" id="death-fail-1" data-type="fail" data-idx="1"></span><span class="dot fls" id="death-fail-2" data-type="fail" data-idx="2"></span></div>
-                  </div>
-                </div>
-                <div class="card momentum-card">
-                  <h2>Impulso</h2>
-                  <div class="impulso-row">
-                    <label class="impulso"><input type="checkbox" id="impulso-1" data-mult="1.5"><span>1.5x</span></label>
-                    <label class="impulso"><input type="checkbox" id="impulso-2" data-mult="2"><span>2x</span></label>
-                    <label class="impulso"><input type="checkbox" id="impulso-3" data-mult="3"><span>3x</span></label>
-                  </div>
-                </div>
-                <div class="cstat desl-box">
-                  <div class="cl">Deslocamento</div>
-                  <div class="desl-fields">
-                    <div class="desl-field"><span>Total</span><input type="number" id="deslocamento-valor" min="0" readonly></div>
-                    <div class="desl-field"><span>Base</span><input type="number" id="deslocamento-base" min="0"></div>
-                    <div class="desl-field"><span>Bônus</span><input type="number" id="deslocamento-bonus" min="0"></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div id="img-modal" class="modal" style="display:none">
-          <div class="modal-content">
-            <h2>Imagem do Personagem</h2>
-            <input type="text" id="img-url-input" placeholder="Cole o link da imagem aqui">
-            <div class="modal-actions">
-              <button class="btn btn-g" id="img-modal-ok">OK</button>
-              <button class="btn" id="img-modal-cancel">Cancelar</button>
-            </div>
-          </div>
-        </div>
-
-        <div id="feat-modal" class="modal" style="display:none">
-          <div class="modal-content">
-            <h2 id="feat-modal-title">Detalhes</h2>
-            <textarea id="feat-modal-textarea" class="wide-ta" rows="8" placeholder="Detalhes..."></textarea>
-            <div class="modal-actions">
-              <button class="btn btn-g" id="feat-modal-ok">OK</button>
-              <button class="btn" id="feat-modal-cancel">Cancelar</button>
-            </div>
-          </div>
-        </div>
-
-        <div class="card">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px"><h2 style="margin:0;border:none;padding:0">Armas</h2><button class="btn btn-sm" id="btn-add-weapon">+ Arma</button></div>
-          <div id="weapons-list">
-            <div class="wp-row wp-header"><span>Nome</span><span>Dano</span><span>Tipo</span><span>Propriedades</span><span></span></div>
-          </div>
-        </div>
-
-        <div class="flex-row">
-          <div class="card flex-col" style="flex:1"><h2>Proficiências</h2><textarea id="prof-textarea" class="wide-ta" style="min-height:80px"></textarea></div>
-          <div class="card flex-col" style="flex:1"><h2>Maestrias</h2><textarea id="maestria-textarea" class="wide-ta" style="min-height:80px"></textarea></div>
-          <div class="card flex-col" style="flex:1">
-            <h2>Recursos</h2>
-            <div class="res-row">
-              <div class="res-box"><div class="rl">TdI</div><div class="rv"><span class="il">G</span><input type="number" id="tdi-ganho" min="0"><span class="il">Gt</span><input type="number" id="tdi-gasto" min="0"><span class="il">At</span><input type="number" id="tdi-atual" min="0"></div></div>
-              <div class="res-box"><div class="rl">EXP</div><div class="rv"><span class="il">G</span><input type="number" id="exp-ganho" min="0"><span class="il">Gt</span><input type="number" id="exp-gasto" min="0"><span class="il">At</span><input type="number" id="exp-atual" min="0"></div></div>
-              <div class="res-box"><div class="rl">Ryo</div><div class="rv"><span class="il">G</span><input type="number" id="ryo-ganho" min="0"><span class="il">Gt</span><input type="number" id="ryo-gasto" min="0"><span class="il">At</span><input type="number" id="ryo-atual" min="0"></div></div>
-            </div>
-          </div>
-        </div>
-
-        <div class="card"><h2>Características</h2><div class="feature-grid">
-          <div class="feat-list">
-            <div class="feat-header"><label>Clã</label><button class="btn btn-sm" onclick="sheet.addFeature('cla')">+</button></div>
-            <div id="feature-cla-list"></div>
-          </div>
-          <div class="feat-list">
-            <div class="feat-header"><label>Classe</label><button class="btn btn-sm" onclick="sheet.addFeature('classe')">+</button></div>
-            <div id="feature-classe-list"></div>
-          </div>
-          <div class="feat-list">
-            <div class="feat-header"><label>Sub-Classe</label><button class="btn btn-sm" onclick="sheet.addFeature('subclasse')">+</button></div>
-            <div id="feature-subclasse-list"></div>
-          </div>
-          <div class="feat-list">
-            <div class="feat-header"><label>Talentos</label><button class="btn btn-sm" onclick="sheet.addFeature('talentos')">+</button></div>
-            <div id="feature-talentos-list"></div>
-          </div>
-        </div></div>
-
-        <div class="card"><h2>Concentração</h2><div class="conc-grid">
-          <div class="conc-box"><label>Jutsu 1</label><input type="text" id="conc-nome-0" placeholder="Nome"><label>Custo Conj</label><input type="text" id="conc-custo-0"><label>Custo/Turno</label><input type="text" id="conc-turno-0"><label>Duração</label><input type="text" id="conc-duracao-0"></div>
-          <div class="conc-box"><label>Jutsu 2</label><input type="text" id="conc-nome-1" placeholder="Nome"><label>Custo Conj</label><input type="text" id="conc-custo-1"><label>Custo/Turno</label><input type="text" id="conc-turno-1"><label>Duração</label><input type="text" id="conc-duracao-1"></div>
-        </div></div>
-
-        <div class="card"><h2>Ações de Habilidade</h2><textarea id="acao-habilidade" class="wide-ta"></textarea></div>
-
-        <div class="card">
-          <h2>Condições Ativas</h2>
-          <div class="cond-grid">
-            <div class="cond-group"><div class="cg"><span>Físicas</span><span>Rank</span></div>
-              <div class="cond-item"><input type="checkbox" id="cond-fisicas-0"><span>Ferida</span><input type="number" id="cond-rank-fisicas-0" min="1" value="1"></div>
-              <div class="cond-item"><input type="checkbox" id="cond-fisicas-1"><span>Cambaleante</span><input type="number" id="cond-rank-fisicas-1" min="1" value="1"></div>
-              <div class="cond-item"><input type="checkbox" id="cond-fisicas-2"><span>Sangramento</span><input type="number" id="cond-rank-fisicas-2" min="1" value="1"></div>
-              <div class="cond-item"><input type="checkbox" id="cond-fisicas-3"><span>Lacerado</span><input type="number" id="cond-rank-fisicas-3" min="1" value="1"></div>
-              <div class="cond-item"><input type="checkbox" id="cond-fisicas-4"><span>Desnorteado</span><input type="number" id="cond-rank-fisicas-4" min="1" value="1"></div>
-              <div class="cond-item"><input type="checkbox" id="cond-fisicas-5"><span>Agarrado</span><input type="number" id="cond-rank-fisicas-5" min="1" value="1"></div>
-              <div class="cond-item"><input type="checkbox" id="cond-fisicas-6"><span>Derrubado</span><input type="number" id="cond-rank-fisicas-6" min="1" value="1"></div>
-              <div class="cond-item"><input type="checkbox" id="cond-fisicas-7"><span>Restringido</span><input type="number" id="cond-rank-fisicas-7" min="1" value="1"></div>
-              <div class="cond-item"><input type="checkbox" id="cond-fisicas-8"><span>Enfraquecido</span><input type="number" id="cond-rank-fisicas-8" min="1" value="1"></div>
-              <div class="cond-item"><input type="checkbox" id="cond-fisicas-9"><span>Fúria</span><input type="number" id="cond-rank-fisicas-9" min="1" value="1"></div>
-              <div class="cond-item"><input type="checkbox" id="cond-fisicas-10"><span>Encantado</span><input type="number" id="cond-rank-fisicas-10" min="1" value="1"></div>
-              <div class="cond-item"><input type="checkbox" id="cond-fisicas-11"><span>Concussão</span><input type="number" id="cond-rank-fisicas-11" min="1" value="1"></div>
-              <div class="cond-item"><input type="checkbox" id="cond-fisicas-12"><span>Confuso</span><input type="number" id="cond-rank-fisicas-12" min="1" value="1"></div>
-              <div class="cond-item"><input type="checkbox" id="cond-fisicas-13"><span>Desmoralizado</span><input type="number" id="cond-rank-fisicas-13" min="1" value="1"></div>
-              <div class="cond-item"><input type="checkbox" id="cond-fisicas-14"><span>Lento</span><input type="number" id="cond-rank-fisicas-14" min="1" value="1"></div>
-              <div class="cond-item"><input type="checkbox" id="cond-fisicas-15"><span>Selado</span><input type="number" id="cond-rank-fisicas-15" min="1" value="1"></div>
-            </div>
-            <div>
-              <div class="cond-group"><div class="cg"><span>Elementais</span><span>Rank</span></div>
-                <div class="cond-item"><input type="checkbox" id="cond-elementais-0"><span>Queimado</span><input type="number" id="cond-rank-elementais-0" min="1" value="1"></div>
-                <div class="cond-item"><input type="checkbox" id="cond-elementais-1"><span>Resfriado</span><input type="number" id="cond-rank-elementais-1" min="1" value="1"></div>
-                <div class="cond-item"><input type="checkbox" id="cond-elementais-2"><span>Corroído</span><input type="number" id="cond-rank-elementais-2" min="1" value="1"></div>
-                <div class="cond-item"><input type="checkbox" id="cond-elementais-3"><span>Chocado</span><input type="number" id="cond-rank-elementais-3" min="1" value="1"></div>
-                <div class="cond-item"><input type="checkbox" id="cond-elementais-4"><span>Envenenado</span><input type="number" id="cond-rank-elementais-4" min="1" value="1"></div>
-              </div>
-              <div class="cond-group" style="margin-top:6px"><div class="cg"><span>Sensoriais</span><span>Rank</span></div>
-                <div class="cond-item"><input type="checkbox" id="cond-sensoriais-0"><span>Invisível</span><input type="number" id="cond-rank-sensoriais-0" min="1" value="1"></div>
-                <div class="cond-item"><input type="checkbox" id="cond-sensoriais-1"><span>Ofuscado</span><input type="number" id="cond-rank-sensoriais-1" min="1" value="1"></div>
-                <div class="cond-item"><input type="checkbox" id="cond-sensoriais-2"><span>Surdo</span><input type="number" id="cond-rank-sensoriais-2" min="1" value="1"></div>
-                <div class="cond-item"><input type="checkbox" id="cond-sensoriais-3"><span>Cego</span><input type="number" id="cond-rank-sensoriais-3" min="1" value="1"></div>
-              </div>
-              <div class="cond-group" style="margin-top:6px"><div class="cg"><span>Mentais</span><span>Rank</span></div>
-                <div class="cond-item"><input type="checkbox" id="cond-mentais-0"><span>Atordoado</span><input type="number" id="cond-rank-mentais-0" min="1" value="1"></div>
-                <div class="cond-item"><input type="checkbox" id="cond-mentais-1"><span>Enfraquecido</span><input type="number" id="cond-rank-mentais-1" min="1" value="1"></div>
-              </div>
-              <div class="cond-group" style="margin-top:6px"><div class="cg"><span>Variadas</span><span>Rank</span></div>
-                <div class="cond-item"><input type="checkbox" id="cond-variadas-0"><span>Morrendo</span><input type="number" id="cond-rank-variadas-0" min="1" value="1"></div>
-                <div class="cond-item"><input type="checkbox" id="cond-variadas-1"><span>Incapacitado</span><input type="number" id="cond-rank-variadas-1" min="1" value="1"></div>
-                <div class="cond-item"><input type="checkbox" id="cond-variadas-2"><span>Exaustão</span><input type="number" id="cond-rank-variadas-2" min="1" value="1"></div>
-                <div class="cond-item"><input type="checkbox" id="cond-variadas-3"><span>Inconsciente</span><input type="number" id="cond-rank-variadas-3" min="1" value="1"></div>
-                <div class="cond-item"><input type="checkbox" id="cond-variadas-4"><span>Petrificado</span><input type="number" id="cond-rank-variadas-4" min="1" value="1"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="col-side">
-        <div class="card">
-          <h2>Combate</h2>
-          <div class="combat-row" style="grid-template-columns:1fr 1fr">
-            <div class="cstat"><div class="cl">PV</div><div class="cstat-row"><input type="number" id="pv-atual2" min="0"> / <input type="number" id="pv-max2" min="1"></div><div class="sub"><span>Temp</span><input type="number" id="pv-temp2" min="0"></div></div>
-            <div class="cstat"><div class="cl">PC</div><div class="cstat-row"><input type="number" id="pc-atual2" min="0"> / <input type="number" id="pc-max2" min="1"></div><div class="sub"><span>Temp</span><input type="number" id="pc-temp2" min="0"></div></div>
-            <div class="cstat vontade-card"><div class="cl">Vontade do Fogo</div><input type="number" id="vontade-fogo" min="0" class="vontade-input"></div>
-            <div class="cstat"><div class="cl">Iniciativa</div><input type="number" id="iniciativa-valor2"><div class="sub"><span>Extra</span><input type="number" id="iniciativa-extra2"></div></div>
-          </div>
-        </div>
-        <div class="side-pair">
-          <div class="card attr-card">
-            <h2>Atributos</h2>
-            <div class="attr-col">
-              <div class="attr-box"><div class="at">Força</div><input type="number" class="avl" id="attr-val-for" min="0" max="30"><div class="amod" id="attr-mod-for">-5</div></div>
-              <div class="attr-box"><div class="at">Destreza</div><input type="number" class="avl" id="attr-val-des" min="0" max="30"><div class="amod" id="attr-mod-des">-5</div></div>
-              <div class="attr-box"><div class="at">Constituição</div><input type="number" class="avl" id="attr-val-con" min="0" max="30"><div class="amod" id="attr-mod-con">-5</div></div>
-              <div class="attr-box"><div class="at">Inteligência</div><input type="number" class="avl" id="attr-val-int" min="0" max="30"><div class="amod" id="attr-mod-int">-5</div></div>
-              <div class="attr-box"><div class="at">Sabedoria</div><input type="number" class="avl" id="attr-val-sab" min="0" max="30"><div class="amod" id="attr-mod-sab">-5</div></div>
-              <div class="attr-box"><div class="at">Carisma</div><input type="number" class="avl" id="attr-val-car" min="0" max="30"><div class="amod" id="attr-mod-car">-5</div></div>
-            </div>
-          </div>
-
-          <div class="side-right">
-            <div class="card saves-card">
-              <h2>Salvamentos</h2>
-              <div class="saves-list">
-                <div class="save-row"><button data-attr="for" id="save-prof-for">—</button><span class="sb" id="save-bonus-for">+0</span><span class="il">Força</span></div>
-                <div class="save-row"><button data-attr="des" id="save-prof-des">—</button><span class="sb" id="save-bonus-des">+0</span><span class="il">Destreza</span></div>
-                <div class="save-row"><button data-attr="con" id="save-prof-con">—</button><span class="sb" id="save-bonus-con">+0</span><span class="il">Constituição</span></div>
-                <div class="save-row"><button data-attr="int" id="save-prof-int">—</button><span class="sb" id="save-bonus-int">+0</span><span class="il">Inteligência</span></div>
-                <div class="save-row"><button data-attr="sab" id="save-prof-sab">—</button><span class="sb" id="save-bonus-sab">+0</span><span class="il">Sabedoria</span></div>
-                <div class="save-row"><button data-attr="car" id="save-prof-car">—</button><span class="sb" id="save-bonus-car">+0</span><span class="il">Carisma</span></div>
-              </div>
-            </div>
-
-            <div class="card">
-              <h2>Nin · Gen · Tai</h2>
-              <div class="nin-col">
-                <div class="nin-box nin"><div class="nl">Ninjutsu</div><div class="nin-row"><div class="nv"><input type="number" id="ninjutsu-bonus" min="0"></div><div class="cd">CD <input type="number" id="ninjutsu-cd" min="0"></div></div></div>
-                <div class="nin-box gen"><div class="nl">Genjutsu</div><div class="nin-row"><div class="nv"><input type="number" id="genjutsu-bonus" min="0"></div><div class="cd">CD <input type="number" id="genjutsu-cd" min="0"></div></div></div>
-                <div class="nin-box tai"><div class="nl">Taijutsu</div><div class="nin-row"><div class="nv"><input type="number" id="taijutsu-bonus" min="0"></div><div class="cd">CD <input type="number" id="taijutsu-cd" min="0"></div></div></div>
-              </div>
-              <div class="atk-base">Base Ataque: <span id="ataque-base">FOR + Prof</span></div>
-            </div>
-          </div>
-        </div>
-
-        <div class="card">
-          <h2>Habilidades</h2>
-          <div class="skill-row skill-header"><span></span><span>Perícia</span><span>Total</span><span>Atrib</span><span>Prof</span><span>Extra</span></div>
-          <div id="skills-list">
-            <div class="skill-row"><button class="stog" data-skill="acrobacia" id="skill-prof-acrobacia">—</button><span>Acrobacia</span><span class="sbonus" id="skill-bonus-acrobacia">+0</span><span class="sattr" id="skill-attr-acrobacia">+0</span><span class="sprof" id="skill-prof-val-acrobacia">+0</span><input type="number" id="skill-base-acrobacia" min="0"></div>
-            <div class="skill-row"><button class="stog" data-skill="adestrar_animais" id="skill-prof-adestrar_animais">—</button><span>Adestrar Animais</span><span class="sbonus" id="skill-bonus-adestrar_animais">+0</span><span class="sattr" id="skill-attr-adestrar_animais">+0</span><span class="sprof" id="skill-prof-val-adestrar_animais">+0</span><input type="number" id="skill-base-adestrar_animais" min="0"></div>
-            <div class="skill-row"><button class="stog" data-skill="artes_marciais" id="skill-prof-artes_marciais">—</button><span>Artes Marciais</span><span class="sbonus" id="skill-bonus-artes_marciais">+0</span><span class="sattr" id="skill-attr-artes_marciais">+0</span><span class="sprof" id="skill-prof-val-artes_marciais">+0</span><input type="number" id="skill-base-artes_marciais" min="0"></div>
-            <div class="skill-row"><button class="stog" data-skill="atletismo" id="skill-prof-atletismo">—</button><span>Atletismo</span><span class="sbonus" id="skill-bonus-atletismo">+0</span><span class="sattr" id="skill-attr-atletismo">+0</span><span class="sprof" id="skill-prof-val-atletismo">+0</span><input type="number" id="skill-base-atletismo" min="0"></div>
-            <div class="skill-row"><button class="stog" data-skill="construir" id="skill-prof-construir">—</button><span>Construir</span><span class="sbonus" id="skill-bonus-construir">+0</span><span class="sattr" id="skill-attr-construir">+0</span><span class="sprof" id="skill-prof-val-construir">+0</span><input type="number" id="skill-base-construir" min="0"></div>
-            <div class="skill-row"><button class="stog" data-skill="controle_chakra" id="skill-prof-controle_chakra">—</button><span>Controle de Chakra</span><span class="sbonus" id="skill-bonus-controle_chakra">+0</span><span class="sattr" id="skill-attr-controle_chakra">+0</span><span class="sprof" id="skill-prof-val-controle_chakra">+0</span><input type="number" id="skill-base-controle_chakra" min="0"></div>
-            <div class="skill-row"><button class="stog" data-skill="enganacao" id="skill-prof-enganacao">—</button><span>Enganação</span><span class="sbonus" id="skill-bonus-enganacao">+0</span><span class="sattr" id="skill-attr-enganacao">+0</span><span class="sprof" id="skill-prof-val-enganacao">+0</span><input type="number" id="skill-base-enganacao" min="0"></div>
-            <div class="skill-row"><button class="stog" data-skill="furtividade" id="skill-prof-furtividade">—</button><span>Furtividade</span><span class="sbonus" id="skill-bonus-furtividade">+0</span><span class="sattr" id="skill-attr-furtividade">+0</span><span class="sprof" id="skill-prof-val-furtividade">+0</span><input type="number" id="skill-base-furtividade" min="0"></div>
-            <div class="skill-row"><button class="stog" data-skill="historia" id="skill-prof-historia">—</button><span>História</span><span class="sbonus" id="skill-bonus-historia">+0</span><span class="sattr" id="skill-attr-historia">+0</span><span class="sprof" id="skill-prof-val-historia">+0</span><input type="number" id="skill-base-historia" min="0"></div>
-            <div class="skill-row"><button class="stog" data-skill="ilusao" id="skill-prof-ilusao">—</button><span>Ilusão</span><span class="sbonus" id="skill-bonus-ilusao">+0</span><span class="sattr" id="skill-attr-ilusao">+0</span><span class="sprof" id="skill-prof-val-ilusao">+0</span><input type="number" id="skill-base-ilusao" min="0"></div>
-            <div class="skill-row"><button class="stog" data-skill="intimidacao" id="skill-prof-intimidacao">—</button><span>Intimidação</span><span class="sbonus" id="skill-bonus-intimidacao">+0</span><span class="sattr" id="skill-attr-intimidacao">+0</span><span class="sprof" id="skill-prof-val-intimidacao">+0</span><input type="number" id="skill-base-intimidacao" min="0"></div>
-            <div class="skill-row"><button class="stog" data-skill="intuicao" id="skill-prof-intuicao">—</button><span>Intuição</span><span class="sbonus" id="skill-bonus-intuicao">+0</span><span class="sattr" id="skill-attr-intuicao">+0</span><span class="sprof" id="skill-prof-val-intuicao">+0</span><input type="number" id="skill-base-intuicao" min="0"></div>
-            <div class="skill-row"><button class="stog" data-skill="investigacao" id="skill-prof-investigacao">—</button><span>Investigação</span><span class="sbonus" id="skill-bonus-investigacao">+0</span><span class="sattr" id="skill-attr-investigacao">+0</span><span class="sprof" id="skill-prof-val-investigacao">+0</span><input type="number" id="skill-base-investigacao" min="0"></div>
-            <div class="skill-row"><button class="stog" data-skill="medicina" id="skill-prof-medicina">—</button><span>Medicina</span><span class="sbonus" id="skill-bonus-medicina">+0</span><span class="sattr" id="skill-attr-medicina">+0</span><span class="sprof" id="skill-prof-val-medicina">+0</span><input type="number" id="skill-base-medicina" min="0"></div>
-            <div class="skill-row"><button class="stog" data-skill="natureza" id="skill-prof-natureza">—</button><span>Natureza</span><span class="sbonus" id="skill-bonus-natureza">+0</span><span class="sattr" id="skill-attr-natureza">+0</span><span class="sprof" id="skill-prof-val-natureza">+0</span><input type="number" id="skill-base-natureza" min="0"></div>
-            <div class="skill-row"><button class="stog" data-skill="ninshou" id="skill-prof-ninshou">—</button><span>Ninshou</span><span class="sbonus" id="skill-bonus-ninshou">+0</span><span class="sattr" id="skill-attr-ninshou">+0</span><span class="sprof" id="skill-prof-val-ninshou">+0</span><input type="number" id="skill-base-ninshou" min="0"></div>
-            <div class="skill-row"><button class="stog" data-skill="percepcao" id="skill-prof-percepcao">—</button><span>Percepção</span><span class="sbonus" id="skill-bonus-percepcao">+0</span><span class="sattr" id="skill-attr-percepcao">+0</span><span class="sprof" id="skill-prof-val-percepcao">+0</span><input type="number" id="skill-base-percepcao" min="0"></div>
-            <div class="skill-row"><button class="stog" data-skill="performance" id="skill-prof-performance">—</button><span>Performance</span><span class="sbonus" id="skill-bonus-performance">+0</span><span class="sattr" id="skill-attr-performance">+0</span><span class="sprof" id="skill-prof-val-performance">+0</span><input type="number" id="skill-base-performance" min="0"></div>
-            <div class="skill-row"><button class="stog" data-skill="persuasao" id="skill-prof-persuasao">—</button><span>Persuasão</span><span class="sbonus" id="skill-bonus-persuasao">+0</span><span class="sattr" id="skill-attr-persuasao">+0</span><span class="sprof" id="skill-prof-val-persuasao">+0</span><input type="number" id="skill-base-persuasao" min="0"></div>
-            <div class="skill-row"><button class="stog" data-skill="prestidigitacao" id="skill-prof-prestidigitacao">—</button><span>Prestidigitação</span><span class="sbonus" id="skill-bonus-prestidigitacao">+0</span><span class="sattr" id="skill-attr-prestidigitacao">+0</span><span class="sprof" id="skill-prof-val-prestidigitacao">+0</span><input type="number" id="skill-base-prestidigitacao" min="0"></div>
-            <div class="skill-row"><button class="stog" data-skill="sobrevivencia" id="skill-prof-sobrevivencia">—</button><span>Sobrevivência</span><span class="sbonus" id="skill-bonus-sobrevivencia">+0</span><span class="sattr" id="skill-attr-sobrevivencia">+0</span><span class="sprof" id="skill-prof-val-sobrevivencia">+0</span><input type="number" id="skill-base-sobrevivencia" min="0"></div>
-          </div>
-          <div class="passives">
-            <span>Percepção: <strong id="percepcao-passiva">10</strong></span>
-            <span>Investigação: <strong id="investigacao-passiva">10</strong></span>
-            <span>Intuição: <strong id="intuicao-passiva">10</strong></span>
-            <span>Furtividade: <strong id="furtividade-passiva">10</strong></span>
-          </div>
-        </div>
+  <div id="new-modal" class="modal" style="display:none">
+    <div class="modal-content">
+      <h2>Novo Personagem</h2>
+      <label class="modal-label">Nome</label>
+      <input type="text" id="new-name" placeholder="Nome do personagem">
+      <label class="modal-label">Senha (para editar depois)</label>
+      <input type="password" id="new-password" placeholder="Defina uma senha">
+      <div class="modal-actions">
+        <button class="btn btn-g" id="new-modal-ok">Criar</button>
+        <button class="btn" id="new-modal-cancel">Cancelar</button>
       </div>
     </div>
   </div>
-
-  <!-- APARÊNCIA -->
-  <div id="tab-a" class="tabc">
-    <div class="card"><h2>Aparência</h2><div class="traits-grid">
-      <div class="trait-field"><label>Idade</label><input type="text" id="ap-idade"></div>
-      <div class="trait-field"><label>Altura</label><input type="text" id="ap-altura"></div>
-      <div class="trait-field"><label>Peso</label><input type="text" id="ap-peso"></div>
-      <div class="trait-field"><label>Gênero</label><input type="text" id="ap-genero"></div>
-      <div class="trait-field"><label>Cabelos</label><input type="text" id="ap-cabelos"></div>
-      <div class="trait-field"><label>Olhos</label><input type="text" id="ap-olhos"></div>
-      <div class="trait-field"><label>Pele</label><input type="text" id="ap-pele"></div>
-      <div class="trait-field"><label>Aura</label><input type="text" id="ap-aura"></div>
-      <div class="trait-field"><label>Roupas</label><input type="text" id="ap-roupas"></div>
-      <div class="trait-field"><label>Tamanho</label><input type="text" id="ap-tamanho"></div>
-      <div class="trait-field"><label>Marcas</label><input type="text" id="ap-marcas"></div>
-      <div class="trait-field"><label>Idiomas</label><input type="text" id="char-idiomas"></div>
-    </div></div>
-  </div>
-
-  <!-- INVENTÁRIO -->
-  <div id="tab-i" class="tabc">
-    <div class="flex-row">
-      <div class="card" style="flex:3"><h2>Armadura</h2><div class="armor-header" style="display:grid;grid-template-columns:1fr 44px 1fr 44px;gap:4px"><span>Nome</span><span>Bônus CA</span><span>Tipo</span><span>Peso</span></div><div class="armor-row"><input type="text" id="armor-nome"><input type="number" id="armor-bonus" min="0"><input type="text" id="armor-tipo"><input type="number" id="armor-peso" min="0" style="width:44px"></div></div>
-      <div class="card" style="flex:1;display:flex;flex-direction:column"><h2>Ryos</h2><div class="field" style="width:100%;margin:auto 0"><span class="il">Valor</span><input type="number" id="ryo-valor" min="0" style="width:80px;font-size:1rem;font-weight:700"></div></div>
-    </div>
-    <div class="card"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px"><h2 style="margin:0;border:none;padding:0">Inventário</h2><button class="btn btn-sm" id="btn-add-item">+ Item</button></div><div id="inventory-list"><div class="inv-row inv-header"><span>Item</span><span>Qtd</span><span>Efeito</span><span>Peso</span><span></span></div></div></div>
-  </div>
-
-  <!-- ANOTAÇÕES -->
-  <div id="tab-n" class="tabc">
-    <div class="card"><h2>Missões</h2><div class="field"><span class="il">D</span><input type="number" id="missoes-d" min="0" style="width:40px"><span class="il">C</span><input type="number" id="missoes-c" min="0" style="width:40px"><span class="il">B</span><input type="number" id="missoes-b" min="0" style="width:40px"><span class="il">A</span><input type="number" id="missoes-a" min="0" style="width:40px"><span class="il">S</span><input type="number" id="missoes-s" min="0" style="width:40px"><span class="il">S+</span><input type="number" id="missoes-sp" min="0" style="width:40px"></div></div>
-    <div class="card"><h2>Traços</h2><div class="traits-grid"><div class="trait-field"><label>Traço do Antecedente</label><input type="text" id="char-traco"></div><div class="trait-field"><label>Motivação</label><input type="text" id="char-motivacao"></div><div class="trait-field"><label>Meta</label><input type="text" id="char-meta"></div><div class="trait-field"><label>Medos</label><input type="text" id="char-medos"></div></div></div>
-    <div class="card"><h2>História</h2><textarea id="char-historia" class="wide-ta" style="min-height:160px"></textarea></div>
-  </div>
-
-  <!-- TURNO -->
-  <div id="tab-t" class="tabc">
-    <div class="card"><h2>Vida por Turno</h2><div class="turn-grid">
-      <div class="tbox"><div class="tl">T1</div><input type="checkbox" id="vt-salvo-0"><label>+PV</label><input type="number" id="vt-maisPV-0"><label>-PV</label><input type="number" id="vt-menosPV-0"><label>+PVT</label><input type="number" id="vt-maisPVT-0"><label>-PVT</label><input type="number" id="vt-menosPVT-0"></div>
-      <div class="tbox"><div class="tl">T2</div><input type="checkbox" id="vt-salvo-1"><label>+PV</label><input type="number" id="vt-maisPV-1"><label>-PV</label><input type="number" id="vt-menosPV-1"><label>+PVT</label><input type="number" id="vt-maisPVT-1"><label>-PVT</label><input type="number" id="vt-menosPVT-1"></div>
-      <div class="tbox"><div class="tl">T3</div><input type="checkbox" id="vt-salvo-2"><label>+PV</label><input type="number" id="vt-maisPV-2"><label>-PV</label><input type="number" id="vt-menosPV-2"><label>+PVT</label><input type="number" id="vt-maisPVT-2"><label>-PVT</label><input type="number" id="vt-menosPVT-2"></div>
-      <div class="tbox"><div class="tl">T4</div><input type="checkbox" id="vt-salvo-3"><label>+PV</label><input type="number" id="vt-maisPV-3"><label>-PV</label><input type="number" id="vt-menosPV-3"><label>+PVT</label><input type="number" id="vt-maisPVT-3"><label>-PVT</label><input type="number" id="vt-menosPVT-3"></div>
-      <div class="tbox"><div class="tl">T5</div><input type="checkbox" id="vt-salvo-4"><label>+PV</label><input type="number" id="vt-maisPV-4"><label>-PV</label><input type="number" id="vt-menosPV-4"><label>+PVT</label><input type="number" id="vt-maisPVT-4"><label>-PVT</label><input type="number" id="vt-menosPVT-4"></div>
-      <div class="tbox"><div class="tl">T6</div><input type="checkbox" id="vt-salvo-5"><label>+PV</label><input type="number" id="vt-maisPV-5"><label>-PV</label><input type="number" id="vt-menosPV-5"><label>+PVT</label><input type="number" id="vt-maisPVT-5"><label>-PVT</label><input type="number" id="vt-menosPVT-5"></div>
-      <div class="tbox"><div class="tl">T7</div><input type="checkbox" id="vt-salvo-6"><label>+PV</label><input type="number" id="vt-maisPV-6"><label>-PV</label><input type="number" id="vt-menosPV-6"><label>+PVT</label><input type="number" id="vt-maisPVT-6"><label>-PVT</label><input type="number" id="vt-menosPVT-6"></div>
-      <div class="tbox"><div class="tl">T8</div><input type="checkbox" id="vt-salvo-7"><label>+PV</label><input type="number" id="vt-maisPV-7"><label>-PV</label><input type="number" id="vt-menosPV-7"><label>+PVT</label><input type="number" id="vt-maisPVT-7"><label>-PVT</label><input type="number" id="vt-menosPVT-7"></div>
-    </div></div>
-    <div class="card"><h2>Chakra por Turno</h2><div class="turn-grid">
-      <div class="tbox"><div class="tl">T1</div><input type="checkbox" id="ct-salvo-0"><label>+PC</label><input type="number" id="ct-maisPC-0"><label>-PC</label><input type="number" id="ct-menosPC-0"><label>+PCT</label><input type="number" id="ct-maisPCT-0"><label>-PCT</label><input type="number" id="ct-menosPCT-0"></div>
-      <div class="tbox"><div class="tl">T2</div><input type="checkbox" id="ct-salvo-1"><label>+PC</label><input type="number" id="ct-maisPC-1"><label>-PC</label><input type="number" id="ct-menosPC-1"><label>+PCT</label><input type="number" id="ct-maisPCT-1"><label>-PCT</label><input type="number" id="ct-menosPCT-1"></div>
-      <div class="tbox"><div class="tl">T3</div><input type="checkbox" id="ct-salvo-2"><label>+PC</label><input type="number" id="ct-maisPC-2"><label>-PC</label><input type="number" id="ct-menosPC-2"><label>+PCT</label><input type="number" id="ct-maisPCT-2"><label>-PCT</label><input type="number" id="ct-menosPCT-2"></div>
-      <div class="tbox"><div class="tl">T4</div><input type="checkbox" id="ct-salvo-3"><label>+PC</label><input type="number" id="ct-maisPC-3"><label>-PC</label><input type="number" id="ct-menosPC-3"><label>+PCT</label><input type="number" id="ct-maisPCT-3"><label>-PCT</label><input type="number" id="ct-menosPCT-3"></div>
-      <div class="tbox"><div class="tl">T5</div><input type="checkbox" id="ct-salvo-4"><label>+PC</label><input type="number" id="ct-maisPC-4"><label>-PC</label><input type="number" id="ct-menosPC-4"><label>+PCT</label><input type="number" id="ct-maisPCT-4"><label>-PCT</label><input type="number" id="ct-menosPCT-4"></div>
-      <div class="tbox"><div class="tl">T6</div><input type="checkbox" id="ct-salvo-5"><label>+PC</label><input type="number" id="ct-maisPC-5"><label>-PC</label><input type="number" id="ct-menosPC-5"><label>+PCT</label><input type="number" id="ct-maisPCT-5"><label>-PCT</label><input type="number" id="ct-menosPCT-5"></div>
-      <div class="tbox"><div class="tl">T7</div><input type="checkbox" id="ct-salvo-6"><label>+PC</label><input type="number" id="ct-maisPC-6"><label>-PC</label><input type="number" id="ct-menosPC-6"><label>+PCT</label><input type="number" id="ct-maisPCT-6"><label>-PCT</label><input type="number" id="ct-menosPCT-6"></div>
-      <div class="tbox"><div class="tl">T8</div><input type="checkbox" id="ct-salvo-7"><label>+PC</label><input type="number" id="ct-maisPC-7"><label>-PC</label><input type="number" id="ct-menosPC-7"><label>+PCT</label><input type="number" id="ct-maisPCT-7"><label>-PCT</label><input type="number" id="ct-menosPCT-7"></div>
-    </div></div>
-  </div>
 </div>
-<div id="prof-menu" class="prof-menu hidden">
-  <div class="prof-menu-item" data-val="">— Nenhuma</div>
-  <div class="prof-menu-item" data-val="h">h Metade</div>
-  <div class="prof-menu-item" data-val="1">P Proficiente</div>
-  <div class="prof-menu-item" data-val="m">M Maestria</div>
-  <div class="prof-menu-item" data-val="m1">M₁ Maestria +2</div>
-  <div class="prof-menu-item" data-val="m2">M₂ Maestria +4</div>
-  <div class="prof-menu-item" data-val="m3">M₃ Maestria +6</div>
-</div>
-<script src="main.js"></script>
+<script src="main-list.js"></script>
 </body>
 </html>

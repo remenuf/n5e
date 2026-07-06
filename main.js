@@ -69,6 +69,145 @@ const INITIAL_DATA = {
   activeTab: 'tab-p'
 };
 
+class SyncManager {
+  constructor() {
+    this.apiUrl = '';
+    this.apiKey = '';
+    this.charId = null;
+    this.password = null;
+    this.isNew = false;
+  }
+
+  async init() {
+    try {
+      const res = await fetch('config.json');
+      const cfg = await res.json();
+      this.apiUrl = cfg.apiUrl || '';
+      this.apiKey = cfg.apiKey || '';
+    } catch {
+      this.apiUrl = '';
+      this.apiKey = '';
+    }
+    const params = new URLSearchParams(window.location.search);
+    this.charId = params.get('id') || null;
+    this.isNew = params.has('new');
+    if (this.isNew) {
+      const pw = params.get('pw');
+      if (pw) this.password = pw;
+    }
+    const importKey = params.get('import');
+    if (importKey) {
+      const raw = localStorage.getItem(importKey);
+      if (raw) {
+        try { this.importData = JSON.parse(raw); } catch {}
+        localStorage.removeItem(importKey);
+      }
+    }
+  }
+
+  get isOnline() {
+    return this.apiUrl && this.apiKey;
+  }
+
+  async apiFetch(path, opts = {}) {
+    const res = await fetch(this.apiUrl + path, {
+      ...opts,
+      headers: {
+        'Content-Type': 'application/json',
+        'X-API-Key': this.apiKey,
+        ...(opts.headers || {}),
+      },
+    });
+    return res.json();
+  }
+
+  async loadCharacter() {
+    if (!this.charId || !this.isOnline) return null;
+    try {
+      const result = await this.apiFetch('/api/characters/' + this.charId);
+      if (result.error) throw new Error(result.error);
+      return result.data;
+    } catch (e) {
+      console.warn('Failed to load from API:', e);
+      return null;
+    }
+  }
+
+  async saveCharacter(data) {
+    if (!this.isOnline) return { ok: false, reason: 'offline' };
+
+    const pw = await this._getPassword();
+    if (!pw) return { ok: false, reason: 'no-password' };
+
+    try {
+      if (this.charId) {
+        const result = await this.apiFetch('/api/characters/' + this.charId, {
+          method: 'PUT',
+          body: JSON.stringify({ data, password: pw }),
+        });
+        if (result.error) throw new Error(result.error);
+        return { ok: true };
+      } else {
+        const result = await this.apiFetch('/api/characters', {
+          method: 'POST',
+          body: JSON.stringify({ data, password: pw }),
+        });
+        if (result.error) throw new Error(result.error);
+        this.charId = result.id;
+        const url = new URL(window.location);
+        url.searchParams.set('id', this.charId);
+        window.history.replaceState({}, '', url);
+        return { ok: true };
+      }
+    } catch (e) {
+      console.warn('Failed to save to API:', e);
+      return { ok: false, reason: e.message };
+    }
+  }
+
+  async _getPassword() {
+    if (this.password) return this.password;
+    return this._promptPassword();
+  }
+
+  async _promptPassword() {
+    const modal = document.getElementById('pw-modal');
+    const input = document.getElementById('pw-input');
+    if (!modal || !input) return null;
+
+    return new Promise(resolve => {
+      input.value = '';
+      modal.style.display = 'flex';
+      input.focus();
+
+      const cleanup = () => { modal.style.display = 'none'; };
+
+      document.getElementById('pw-modal-ok').onclick = () => {
+        const pw = input.value;
+        if (!pw) { input.focus(); return; }
+        this.password = pw;
+        cleanup();
+        resolve(pw);
+      };
+
+      document.getElementById('pw-modal-cancel').onclick = () => {
+        cleanup();
+        resolve(null);
+      };
+
+      modal.onclick = e => {
+        if (e.target === modal) { cleanup(); resolve(null); }
+      };
+
+      input.onkeydown = e => {
+        if (e.key === 'Enter') document.getElementById('pw-modal-ok').click();
+      };
+    });
+  }
+}
+
+const sync = new SyncManager();
+
 function calcMod(v) { return Math.floor((Number(v) - 10) / 2); }
 
 class Sheet {
@@ -76,6 +215,30 @@ class Sheet {
     this.data = this._load();
     this.render();
     this._listen();
+    this._initSync();
+  }
+
+  async _initSync() {
+    await sync.init();
+    if (sync.importData) {
+      this.data = this._merge(JSON.parse(JSON.stringify(INITIAL_DATA)), sync.importData);
+      this._save();
+      this.render();
+      return;
+    }
+    if (sync.charId && sync.isOnline) {
+      const status = document.getElementById('sync-status');
+      if (status) status.textContent = 'Carregando...';
+      const remote = await sync.loadCharacter();
+      if (remote) {
+        this.data = this._merge(JSON.parse(JSON.stringify(INITIAL_DATA)), remote);
+        this._save();
+        this.render();
+        if (status) status.textContent = '';
+      } else {
+        if (status) status.textContent = 'Falha ao carregar do servidor';
+      }
+    }
   }
 
   _load() {
@@ -112,6 +275,26 @@ class Sheet {
   _save() { try { localStorage.setItem('ficha5e', JSON.stringify(this.data)); } catch {} }
 
   _auto() { clearTimeout(this._t); this._t = setTimeout(() => this._save(), 400); }
+
+  async syncSave() {
+    const status = document.getElementById('sync-status');
+    if (!sync.isOnline) {
+      if (status) status.textContent = 'Modo offline — salvo localmente';
+      setTimeout(() => { if (status) status.textContent = ''; }, 2000);
+      return;
+    }
+    if (status) status.textContent = 'Salvando...';
+    const result = await sync.saveCharacter(this.data);
+    if (result.ok) {
+      if (status) status.textContent = sync.charId ? 'Salvo no servidor' : 'Criado no servidor';
+      setTimeout(() => { if (status) status.textContent = ''; }, 2000);
+    } else if (result.reason === 'no-password') {
+      if (status) status.textContent = '';
+    } else {
+      if (status) status.textContent = 'Erro: ' + (result.reason || 'desconhecido');
+      setTimeout(() => { if (status) status.textContent = ''; }, 3000);
+    }
+  }
 
   mod(a) { return calcMod(this.data.atributos[a]); }
 
@@ -151,7 +334,6 @@ class Sheet {
       else if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT') el.value = v ?? '';
       else el.textContent = v ?? '';
     }
-    return el;
     return el;
   }
 
@@ -712,6 +894,7 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('btn-add-weapon')?.addEventListener('click', () => window.sheet.addWeapon());
   document.getElementById('btn-add-item')?.addEventListener('click', () => window.sheet.addItem());
   document.getElementById('btn-export')?.addEventListener('click', () => window.sheet.exportJSON());
+  document.getElementById('btn-save')?.addEventListener('click', () => window.sheet.syncSave());
   document.getElementById('btn-import')?.addEventListener('click', () => document.getElementById('import-file').click());
   document.getElementById('import-file')?.addEventListener('change', e => { if (e.target.files[0]) window.sheet.importJSON(e.target.files[0]); e.target.value = ''; });
   document.getElementById('btn-reset')?.addEventListener('click', () => window.sheet.reset());

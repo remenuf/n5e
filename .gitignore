@@ -1,1 +1,4 @@
 *.xlsx
+worker/node_modules/
+worker/.dev.vars
+.wrangler/
