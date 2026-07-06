@@ -835,12 +835,16 @@ class Sheet {
     r.readAsText(file);
   }
 
-  reset() {
-    if (confirm('Apagar todos os dados?')) {
-      localStorage.removeItem('ficha5e');
-      this.data = JSON.parse(JSON.stringify(INITIAL_DATA));
-      this.render();
-    }
+  async reset() {
+    if (!confirm('Criar nova ficha?')) return;
+    const pw = await sync._promptPassword();
+    if (!pw) return;
+    sync.password = pw;
+    sync.charId = null;
+    localStorage.removeItem('ficha5e');
+    this.data = JSON.parse(JSON.stringify(INITIAL_DATA));
+    this.render();
+    window.location.href = 'ficha.html?new=&pw=' + encodeURIComponent(pw);
   }
 
   _listen() {
