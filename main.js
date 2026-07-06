@@ -94,6 +94,7 @@ class SyncManager {
     if (this.isNew) {
       const pw = params.get('pw');
       if (pw) this.password = pw;
+      this.newName = params.get('name') || '';
     }
     const importKey = params.get('import');
     if (importKey) {
@@ -213,6 +214,7 @@ function calcMod(v) { return Math.floor((Number(v) - 10) / 2); }
 class Sheet {
   constructor() {
     this.data = this._load();
+    this._dirty = false;
     this.render();
     this._listen();
     this._initSync();
@@ -223,6 +225,14 @@ class Sheet {
     if (sync.importData) {
       this.data = this._merge(JSON.parse(JSON.stringify(INITIAL_DATA)), sync.importData);
       this._save();
+      this._dirty = false;
+      this.render();
+      return;
+    }
+    if (sync.isNew) {
+      if (sync.newName) this.data.name = sync.newName;
+      this._save();
+      this._dirty = false;
       this.render();
       return;
     }
@@ -232,7 +242,7 @@ class Sheet {
       const remote = await sync.loadCharacter();
       if (remote) {
         this.data = this._merge(JSON.parse(JSON.stringify(INITIAL_DATA)), remote);
-        this._save();
+        this._dirty = false;
         this.render();
         if (status) status.textContent = '';
       } else {
@@ -242,6 +252,8 @@ class Sheet {
   }
 
   _load() {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('id')) return JSON.parse(JSON.stringify(INITIAL_DATA));
     try {
       const s = localStorage.getItem('ficha5e');
       if (s) {
@@ -272,9 +284,23 @@ class Sheet {
     return a;
   }
 
-  _save() { try { localStorage.setItem('ficha5e', JSON.stringify(this.data)); } catch {} }
+  _save() { try { this._dirty = true; if (!sync.charId) localStorage.setItem('ficha5e', JSON.stringify(this.data)); } catch {} }
 
-  _auto() { clearTimeout(this._t); this._t = setTimeout(() => this._save(), 400); }
+  _auto() { this._dirty = true; clearTimeout(this._t); this._t = setTimeout(() => this._save(), 400); }
+
+  _img() {
+    const imgEl = document.getElementById('char-img');
+    const imgPlaceholder = document.querySelector('.img-placeholder');
+    if (!imgEl || !imgPlaceholder) return;
+    if (this.data.imgUrl) {
+      imgEl.src = this.data.imgUrl;
+      imgEl.style.display = 'block';
+      imgPlaceholder.style.display = 'none';
+    } else {
+      imgEl.style.display = 'none';
+      imgPlaceholder.style.display = '';
+    }
+  }
 
   async syncSave() {
     const status = document.getElementById('sync-status');
@@ -286,6 +312,8 @@ class Sheet {
     if (status) status.textContent = 'Salvando...';
     const result = await sync.saveCharacter(this.data);
     if (result.ok) {
+      this._dirty = false;
+      localStorage.removeItem('ficha5e');
       if (status) status.textContent = sync.charId ? 'Salvo no servidor' : 'Criado no servidor';
       setTimeout(() => { if (status) status.textContent = ''; }, 2000);
     } else if (result.reason === 'no-password') {
@@ -357,6 +385,7 @@ class Sheet {
     this._inventory();
     this._missoes();
     this._traits();
+    this._img();
     this._restoreTab();
   }
 
@@ -822,6 +851,7 @@ class Sheet {
     const u = URL.createObjectURL(b);
     const a = document.createElement('a'); a.href = u; a.download = (this.data.name || 'personagem') + '_ficha.json'; a.click();
     URL.revokeObjectURL(u);
+    this._dirty = false;
   }
 
   importJSON(file) {
@@ -829,22 +859,21 @@ class Sheet {
     r.onload = e => {
       try {
         this.data = this._merge(JSON.parse(JSON.stringify(INITIAL_DATA)), JSON.parse(e.target.result));
-        this._save(); this.render(); alert('Importado!');
+        this._save(); this._dirty = false; this.render(); alert('Importado!');
       } catch { alert('Erro: arquivo inválido.'); }
     };
     r.readAsText(file);
   }
 
   async reset() {
-    if (!confirm('Criar nova ficha?')) return;
-    const pw = await sync._promptPassword();
-    if (!pw) return;
-    sync.password = pw;
-    sync.charId = null;
-    localStorage.removeItem('ficha5e');
-    this.data = JSON.parse(JSON.stringify(INITIAL_DATA));
-    this.render();
-    window.location.href = 'ficha.html?new=&pw=' + encodeURIComponent(pw);
+    const modal = document.getElementById('new-char-modal');
+    const nameInput = document.getElementById('new-char-name');
+    const pwInput = document.getElementById('new-char-pw');
+    if (!modal || !nameInput || !pwInput) return;
+    nameInput.value = '';
+    pwInput.value = '';
+    modal.style.display = 'flex';
+    nameInput.focus();
   }
 
   _listen() {
@@ -891,7 +920,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const t = document.getElementById(b.dataset.tab);
     if (t) t.classList.add('on');
     window.sheet.data.activeTab = b.dataset.tab;
-    window.sheet._save();
+    try { localStorage.setItem('ficha5e', JSON.stringify(window.sheet.data)); } catch {}
     t.querySelectorAll('.inv-ta, .wp-ta').forEach(ta => window.sheet._autoGrow(ta));
   }));
 
@@ -903,23 +932,35 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('import-file')?.addEventListener('change', e => { if (e.target.files[0]) window.sheet.importJSON(e.target.files[0]); e.target.value = ''; });
   document.getElementById('btn-reset')?.addEventListener('click', () => window.sheet.reset());
 
+  const newCharModal = document.getElementById('new-char-modal');
+  const newCharName = document.getElementById('new-char-name');
+  const newCharPw = document.getElementById('new-char-pw');
+
+  document.getElementById('new-char-modal-ok')?.addEventListener('click', async () => {
+    const name = newCharName.value.trim();
+    const pw = newCharPw.value;
+    if (!name) { newCharName.focus(); return; }
+    if (!pw) { newCharPw.focus(); return; }
+    window.sheet._dirty = false;
+    localStorage.removeItem('ficha5e');
+    window.location.href = 'ficha.html?new=&pw=' + encodeURIComponent(pw) + '&name=' + encodeURIComponent(name);
+  });
+
+  document.getElementById('new-char-modal-cancel')?.addEventListener('click', () => {
+    newCharModal.style.display = 'none';
+  });
+
+  newCharModal?.addEventListener('click', e => {
+    if (e.target === newCharModal) newCharModal.style.display = 'none';
+  });
+
+  newCharPw?.addEventListener('keydown', e => {
+    if (e.key === 'Enter') document.getElementById('new-char-modal-ok').click();
+  });
+
   const imgBox = document.getElementById('char-img-box');
   const imgModal = document.getElementById('img-modal');
   const imgInput = document.getElementById('img-url-input');
-  const imgEl = document.getElementById('char-img');
-  const imgPlaceholder = document.querySelector('.img-placeholder');
-
-  function updateImg() {
-    if (window.sheet.data.imgUrl) {
-      imgEl.src = window.sheet.data.imgUrl;
-      imgEl.style.display = 'block';
-      imgPlaceholder.style.display = 'none';
-    } else {
-      imgEl.style.display = 'none';
-      imgPlaceholder.style.display = '';
-    }
-  }
-  updateImg();
 
   imgBox?.addEventListener('click', () => {
     imgInput.value = window.sheet.data.imgUrl || '';
@@ -930,7 +971,7 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('img-modal-ok')?.addEventListener('click', () => {
     window.sheet.data.imgUrl = imgInput.value.trim();
     window.sheet._save();
-    updateImg();
+    window.sheet._img();
     imgModal.style.display = 'none';
   });
 
@@ -946,7 +987,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (e.key === 'Enter') {
       window.sheet.data.imgUrl = imgInput.value.trim();
       window.sheet._save();
-      updateImg();
+      window.sheet._img();
       imgModal.style.display = 'none';
     }
   });
@@ -968,5 +1009,12 @@ document.addEventListener('DOMContentLoaded', () => {
       window.sheet._passives();
     }
     profMenu.classList.add('hidden');
+  });
+
+  window.addEventListener('beforeunload', e => {
+    if (window.sheet._dirty) {
+      e.preventDefault();
+      e.returnValue = '';
+    }
   });
 });

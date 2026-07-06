@@ -80,27 +80,7 @@
     const pw = newPw.value;
     if (!name) { newName.focus(); return; }
     if (!pw) { newPw.focus(); return; }
-
-    try {
-      const result = await apiFetch('/api/characters', {
-        method: 'POST',
-        body: JSON.stringify({
-          data: {
-            name: name,
-            imgUrl: '',
-            classe: '',
-            subclasse: '',
-            nivel: 0,
-            proficiencia: 0,
-          },
-          password: pw,
-        }),
-      });
-      if (result.error) throw new Error(result.error);
-      window.location.href = 'ficha.html?id=' + result.id + '&pw=' + encodeURIComponent(pw);
-    } catch (e) {
-      status.textContent = 'Erro ao criar: ' + e.message;
-    }
+    window.location.href = 'ficha.html?new=&pw=' + encodeURIComponent(pw) + '&name=' + encodeURIComponent(name);
   });
 
   document.getElementById('new-modal-cancel').addEventListener('click', () => {

@@ -17,7 +17,7 @@
       <button class="btn" id="btn-export">Exportar</button>
       <button class="btn" id="btn-import">Importar</button>
       <input type="file" id="import-file" accept=".json" style="display:none">
-      <button class="btn btn-r" id="btn-reset">Nova ficha</button>
+      <button class="btn btn-g" id="btn-reset">+ Novo Personagem</button>
     </div>
   </div>
   <div class="tabs">
@@ -371,6 +371,19 @@
   <div class="prof-menu-item" data-val="m1">M₁ Maestria +2</div>
   <div class="prof-menu-item" data-val="m2">M₂ Maestria +4</div>
   <div class="prof-menu-item" data-val="m3">M₃ Maestria +6</div>
+</div>
+<div id="new-char-modal" class="modal" style="display:none">
+  <div class="modal-content">
+    <h2>Novo Personagem</h2>
+    <label class="modal-label">Nome</label>
+    <input type="text" id="new-char-name" placeholder="Nome do personagem">
+    <label class="modal-label">Senha (para editar depois)</label>
+    <input type="password" id="new-char-pw" placeholder="Defina uma senha">
+    <div class="modal-actions">
+      <button class="btn btn-g" id="new-char-modal-ok">Criar</button>
+      <button class="btn" id="new-char-modal-cancel">Cancelar</button>
+    </div>
+  </div>
 </div>
 <div id="pw-modal" class="modal" style="display:none">
   <div class="modal-content">
