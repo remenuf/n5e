@@ -242,6 +242,7 @@ class Sheet {
       const remote = await sync.loadCharacter();
       if (remote) {
         this.data = this._merge(JSON.parse(JSON.stringify(INITIAL_DATA)), remote);
+        this._migrateProf();
         this._dirty = false;
         this.render();
         if (status) status.textContent = '';
@@ -260,14 +261,7 @@ class Sheet {
         const d = JSON.parse(JSON.stringify(INITIAL_DATA));
         const saved = JSON.parse(s);
         const merged = this._merge(d, saved);
-        if (merged.habilidades) {
-          for (const k in merged.habilidades) {
-            const prof = merged.habilidades[k].prof;
-            if (prof === 0) merged.habilidades[k].prof = '';
-            else if (prof === 1) merged.habilidades[k].prof = '1';
-            else if (prof === 2) merged.habilidades[k].prof = 'm';
-          }
-        }
+        this._migrateProf(merged);
         return merged;
       }
     } catch {}
@@ -282,6 +276,18 @@ class Sheet {
       } else if (b[k] !== undefined) a[k] = b[k];
     }
     return a;
+  }
+
+  _migrateProf(data) {
+    const d = data || this.data;
+    if (!d.habilidades) return;
+    for (const k in d.habilidades) {
+      const prof = d.habilidades[k].prof;
+      if (prof === 0) d.habilidades[k].prof = '';
+      else if (prof === 1) d.habilidades[k].prof = '1';
+      else if (prof === 2) d.habilidades[k].prof = 'm';
+      else if (prof === 'm') d.habilidades[k].prof = 'm1';
+    }
   }
 
   _save() {
@@ -359,8 +365,7 @@ class Sheet {
     const pb = this.profBonus();
     if (p === 'h') return Math.floor(pb * 0.5);
     if (p === '1') return pb;
-    if (p === 'm') return pb * 2;
-    if (p === 'm1') return pb + 2;
+    if (p === 'm' || p === 'm1') return pb + 2;
     if (p === 'm2') return pb + 4;
     if (p === 'm3') return pb + 6;
     return 0;
@@ -475,7 +480,7 @@ class Sheet {
 
   _skills() {
     const keys = Object.keys(this.data.habilidades);
-    const profLabels = { '': '—', 'h': 'h', '1': 'P', 'm': 'M', 'm1': 'M₁', 'm2': 'M₂', 'm3': 'M₃' };
+    const profLabels = { '': '—', 'h': 'h', '1': 'P', 'm1': 'M₁', 'm2': 'M₂', 'm3': 'M₃' };
     keys.forEach(k => {
       const s = this.data.habilidades[k];
       const b = this.skillMod(k);
@@ -957,18 +962,18 @@ document.addEventListener('DOMContentLoaded', () => {
   function openDicePopup(target, type) {
     const popup = document.getElementById('dice-popup');
     const dice = window.sheet.data[type + 'Dice'] || { qty: 1, die: 4 };
-    document.getElementById('dice-qty').value = dice.qty;
-    document.getElementById('dice-type').value = dice.die;
+    document.getElementById('dice-input').value = dice.qty + 'd' + dice.die;
     const rect = target.getBoundingClientRect();
     popup.style.top = (rect.bottom + 4) + 'px';
     popup.style.left = Math.max(4, rect.left - 40) + 'px';
     popup.classList.remove('hidden');
     activeDiceTarget = type;
+    document.getElementById('dice-input').focus();
+    document.getElementById('dice-input').select();
   }
 
   function closeDicePopup() {
-    const popup = document.getElementById('dice-popup');
-    popup.classList.add('hidden');
+    document.getElementById('dice-popup').classList.add('hidden');
     activeDiceTarget = null;
   }
 
@@ -982,22 +987,22 @@ document.addEventListener('DOMContentLoaded', () => {
     openDicePopup(e.target, 'pc');
   });
 
-  document.getElementById('dice-qty')?.addEventListener('change', () => {
+  document.getElementById('dice-input')?.addEventListener('change', () => {
     if (!activeDiceTarget) return;
-    const qty = parseInt(document.getElementById('dice-qty').value) || 1;
-    const die = parseInt(document.getElementById('dice-type').value) || 4;
-    window.sheet.data[activeDiceTarget + 'Dice'] = { qty, die };
-    window.sheet._renderDiceBtn(activeDiceTarget);
-    window.sheet._save();
+    const input = document.getElementById('dice-input');
+    const m = input.value.match(/^(\d+)\s*d\s*(\d+)$/i);
+    if (m) {
+      const qty = parseInt(m[1]) || 1;
+      const die = parseInt(m[2]) || 4;
+      window.sheet.data[activeDiceTarget + 'Dice'] = { qty, die };
+      window.sheet._renderDiceBtn(activeDiceTarget);
+      window.sheet._save();
+    }
+    closeDicePopup();
   });
 
-  document.getElementById('dice-type')?.addEventListener('change', () => {
-    if (!activeDiceTarget) return;
-    const qty = parseInt(document.getElementById('dice-qty').value) || 1;
-    const die = parseInt(document.getElementById('dice-type').value) || 4;
-    window.sheet.data[activeDiceTarget + 'Dice'] = { qty, die };
-    window.sheet._renderDiceBtn(activeDiceTarget);
-    window.sheet._save();
+  document.getElementById('dice-input')?.addEventListener('keydown', e => {
+    if (e.key === 'Enter') { e.preventDefault(); document.getElementById('dice-input').dispatchEvent(new Event('change')); }
   });
 
   document.addEventListener('click', e => {
