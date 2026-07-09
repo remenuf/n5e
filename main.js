@@ -13,8 +13,8 @@ const INITIAL_DATA = {
   afinidade: '',
   atributos: { for: 10, des: 10, con: 10, int: 10, sab: 10, car: 10 },
   salvaguardas: { for: false, des: false, con: false, int: false, sab: false, car: false },
-  pvMax: 0, pvAtual: 0, pvTemp: 0,
-  pcMax: 0, pcAtual: 0, pcTemp: 0,
+  pvMax: 0, pvAtual: 0, pvTemp: 0, pvDice: { qty: 1, die: 4 },
+  pcMax: 0, pcAtual: 0, pcTemp: 0, pcDice: { qty: 1, die: 4 },
   caProfBonus: 0, caOutros: 0, caAtrib: 'des', iniciativa: 0, iniciativaExtra: 0, deslocamento: 0, deslocamentoBase: 0, deslocamentoBonus: 0, impulso: 0, vontadeFogo: 0,
   sucessoMorte: 0, falhaMorte: 0,
   habilidades: {
@@ -341,7 +341,8 @@ class Sheet {
 
   saveBonus(a) {
     let b = this.mod(a);
-    if (this.data.salvaguardas[a]) b += this.profBonus();
+    b += Math.floor(this.profBonus() / 2);
+    if (this.data.salvaguardas[a]) b += Math.ceil(this.profBonus() / 2);
     return b;
   }
 
@@ -453,6 +454,14 @@ class Sheet {
     [1.5, 2, 3].forEach((m, i) => { const cb = this.$('impulso-'+(i+1)); if (cb) cb.checked = d.impulso === m; });
     this.$('vontade-fogo', d.vontadeFogo);
     this._calcCA();
+    this._renderDiceBtn('pv');
+    this._renderDiceBtn('pc');
+  }
+
+  _renderDiceBtn(type) {
+    const dice = this.data[type + 'Dice'] || { qty: 1, die: 4 };
+    const btn = this.$(type + '-dice-btn');
+    if (btn) btn.title = dice.qty + 'd' + dice.die;
   }
 
   _death() {
@@ -942,6 +951,61 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('btn-save')?.addEventListener('click', () => window.sheet.syncSave());
   document.getElementById('btn-import')?.addEventListener('click', () => document.getElementById('import-file').click());
   document.getElementById('import-file')?.addEventListener('change', e => { if (e.target.files[0]) window.sheet.importJSON(e.target.files[0]); e.target.value = ''; });
+
+  let activeDiceTarget = null;
+
+  function openDicePopup(target, type) {
+    const popup = document.getElementById('dice-popup');
+    const dice = window.sheet.data[type + 'Dice'] || { qty: 1, die: 4 };
+    document.getElementById('dice-qty').value = dice.qty;
+    document.getElementById('dice-type').value = dice.die;
+    const rect = target.getBoundingClientRect();
+    popup.style.top = (rect.bottom + 4) + 'px';
+    popup.style.left = Math.max(4, rect.left - 40) + 'px';
+    popup.classList.remove('hidden');
+    activeDiceTarget = type;
+  }
+
+  function closeDicePopup() {
+    const popup = document.getElementById('dice-popup');
+    popup.classList.add('hidden');
+    activeDiceTarget = null;
+  }
+
+  document.getElementById('pv-dice-btn')?.addEventListener('click', e => {
+    e.stopPropagation();
+    openDicePopup(e.target, 'pv');
+  });
+
+  document.getElementById('pc-dice-btn')?.addEventListener('click', e => {
+    e.stopPropagation();
+    openDicePopup(e.target, 'pc');
+  });
+
+  document.getElementById('dice-qty')?.addEventListener('change', () => {
+    if (!activeDiceTarget) return;
+    const qty = parseInt(document.getElementById('dice-qty').value) || 1;
+    const die = parseInt(document.getElementById('dice-type').value) || 4;
+    window.sheet.data[activeDiceTarget + 'Dice'] = { qty, die };
+    window.sheet._renderDiceBtn(activeDiceTarget);
+    window.sheet._save();
+  });
+
+  document.getElementById('dice-type')?.addEventListener('change', () => {
+    if (!activeDiceTarget) return;
+    const qty = parseInt(document.getElementById('dice-qty').value) || 1;
+    const die = parseInt(document.getElementById('dice-type').value) || 4;
+    window.sheet.data[activeDiceTarget + 'Dice'] = { qty, die };
+    window.sheet._renderDiceBtn(activeDiceTarget);
+    window.sheet._save();
+  });
+
+  document.addEventListener('click', e => {
+    const popup = document.getElementById('dice-popup');
+    if (!popup.classList.contains('hidden') && !popup.contains(e.target) && !e.target.closest('.dice-btn')) {
+      closeDicePopup();
+    }
+  });
   document.getElementById('btn-reset')?.addEventListener('click', () => window.sheet.reset());
 
   const newCharModal = document.getElementById('new-char-modal');
