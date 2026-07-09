@@ -257,8 +257,9 @@ textarea{resize:vertical;min-height:50px}
 .feature-grid .feat-header label{font-size:.6rem;color:var(--muted);text-transform:uppercase;font-weight:600}
 .feature-grid .feat-item{display:flex;gap:4px;margin-bottom:4px}
 .feature-grid .feat-input{flex:1;font-size:.78rem;padding:4px 6px}
-.feat-detail-btn{font-size:.65rem;padding:2px 6px}
+.feat-detail-btn{font-size:.65rem;padding:2px 6px;transition:all .15s}
 .feat-detail-btn.btn:hover{background:var(--fire);border-color:var(--fire);color:#fff}
+.feat-detail-btn.has-detail{background:var(--green);border-color:var(--green);color:#fff}
 
 /* ─── Concentration ─── */
 .conc-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}

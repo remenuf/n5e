@@ -540,9 +540,10 @@ class Sheet {
       const items = Array.isArray(t[k]) ? t[k] : (t[k] ? [{nome: t[k], detalhes: ''}] : []);
       items.forEach((item, i) => {
         const nome = typeof item === 'string' ? item : (item.nome || '');
+        const hasDetalhes = typeof item === 'object' && item.detalhes && item.detalhes.trim();
         const row = document.createElement('div');
         row.className = 'feat-item';
-        row.innerHTML = `<input type="text" class="feat-input" id="feat-${k}-${i}" value="${this._e(nome)}" data-key="${k}" data-idx="${i}" data-field="nome"><button class="btn btn-sm feat-detail-btn" data-key="${k}" data-idx="${i}">Detalhes</button><button class="rm" data-key="${k}" data-idx="${i}">&times;</button>`;
+        row.innerHTML = `<input type="text" class="feat-input" id="feat-${k}-${i}" value="${this._e(nome)}" data-key="${k}" data-idx="${i}" data-field="nome"><button class="btn btn-sm feat-detail-btn${hasDetalhes ? ' has-detail' : ''}" data-key="${k}" data-idx="${i}">Detalhes</button><button class="rm" data-key="${k}" data-idx="${i}">&times;</button>`;
         list.appendChild(row);
       });
     });
