@@ -164,6 +164,7 @@ class SyncManager {
       }
     } catch (e) {
       console.warn('Failed to save to API:', e);
+      if (e.message === 'Wrong password') this.password = null;
       return { ok: false, reason: e.message };
     }
   }
