@@ -284,7 +284,16 @@ class Sheet {
     return a;
   }
 
-  _save() { try { this._dirty = true; if (!sync.charId) localStorage.setItem('ficha5e', JSON.stringify(this.data)); } catch {} }
+  _save() {
+    try {
+      this._dirty = true;
+      if (!sync.charId) {
+        const saveData = JSON.parse(JSON.stringify(this.data));
+        delete saveData.activeTab;
+        localStorage.setItem('ficha5e', JSON.stringify(saveData));
+      }
+    } catch {}
+  }
 
   _auto() { this._dirty = true; clearTimeout(this._t); this._t = setTimeout(() => this._save(), 400); }
 
@@ -310,7 +319,9 @@ class Sheet {
       return;
     }
     if (status) status.textContent = 'Salvando...';
-    const result = await sync.saveCharacter(this.data);
+    const saveData = JSON.parse(JSON.stringify(this.data));
+    delete saveData.activeTab;
+    const result = await sync.saveCharacter(saveData);
     if (result.ok) {
       this._dirty = false;
       localStorage.removeItem('ficha5e');
@@ -390,7 +401,7 @@ class Sheet {
   }
 
   _restoreTab() {
-    const id = this.data.activeTab || 'tab-p';
+    const id = 'tab-p';
     document.querySelectorAll('.tab').forEach(x => x.classList.remove('on'));
     document.querySelectorAll('.tabc').forEach(x => x.classList.remove('on'));
     const btn = document.querySelector(`.tab[data-tab="${id}"]`);
@@ -435,9 +446,9 @@ class Sheet {
 
   _combat() {
     const d = this.data;
-    this.$('pv-max', d.pvMax); this.$('pv-atual', d.pvAtual); this.$('pv-temp', d.pvTemp);
-    this.$('pc-max', d.pcMax); this.$('pc-atual', d.pcAtual); this.$('pc-temp', d.pcTemp);
-    this.$('iniciativa-valor', d.iniciativa); this.$('iniciativa-extra', d.iniciativaExtra);
+    this.$('pv-max2', d.pvMax); this.$('pv-atual2', d.pvAtual); this.$('pv-temp2', d.pvTemp);
+    this.$('pc-max2', d.pcMax); this.$('pc-atual2', d.pcAtual); this.$('pc-temp2', d.pcTemp);
+    this.$('iniciativa-valor2', d.iniciativa); this.$('iniciativa-extra2', d.iniciativaExtra);
     this.$('deslocamento-valor', d.deslocamento); this.$('deslocamento-base', d.deslocamentoBase); this.$('deslocamento-bonus', d.deslocamentoBonus);
     [1.5, 2, 3].forEach((m, i) => { const cb = this.$('impulso-'+(i+1)); if (cb) cb.checked = d.impulso === m; });
     this.$('vontade-fogo', d.vontadeFogo);
@@ -668,6 +679,7 @@ class Sheet {
     const num = parseFloat(val);
     const isN = !isNaN(num) && val !== '' && el.type !== 'text';
 
+    if (id.endsWith('2')) id = id.slice(0, -1);
     if (id.startsWith('char-')) this._setChar(id, val, isN, num);
     else if (id.startsWith('attr-val-')) { this.data.atributos[id.replace('attr-val-','')] = isN ? num : 0; this._attrs(); this._skills(); this._passives(); this._nin(); this._calcCA(); }
     else if (id.startsWith('pv-') || id.startsWith('pc-') || id === 'iniciativa-valor' || id === 'iniciativa-extra' || id === 'deslocamento-base' || id === 'deslocamento-bonus') this._setCombat(id, isN, num);
@@ -920,7 +932,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const t = document.getElementById(b.dataset.tab);
     if (t) t.classList.add('on');
     window.sheet.data.activeTab = b.dataset.tab;
-    try { localStorage.setItem('ficha5e', JSON.stringify(window.sheet.data)); } catch {}
     t.querySelectorAll('.inv-ta, .wp-ta').forEach(ta => window.sheet._autoGrow(ta));
   }));
 
