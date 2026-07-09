@@ -57,6 +57,8 @@ const INITIAL_DATA = {
     variadas: ['Morrendo','Incapacitado','Exaustão','Inconsciente','Petrificado'].map(n => ({ nome: n, ativo: false, rank: 1 }))
   },
   tracos: { cla: [], classe: [], subclasse: [], talentos: [] },
+  naturezas: { fogo: false, vento: false, agua: false, relampago: false, terra: false, mistura: false, medicinal: false, fuinjutsu: false },
+  jutsus: [],
   aparencia: { idade: '', altura: '', peso: '', genero: '', cabelos: '', olhos: '', pele: '', aura: '', roupas: '', tamanho: '', marcas: '' },
   idiomas: '', tracoAntecedente: '', motivacao: '', meta: '', medos: '', historia: '',
   missoes: { d: 0, c: 0, b: 0, a: 0, s: 0, sp: 0 },
@@ -402,6 +404,8 @@ class Sheet {
     this._inventory();
     this._missoes();
     this._traits();
+    this._naturezas();
+    this._jutsus();
     this._img();
     this._restoreTab();
   }
@@ -623,6 +627,108 @@ class Sheet {
         if (r) r.value = c.rank || 1;
       });
     });
+  }
+
+  _naturezas() {
+    const list = this.$('natureza-list');
+    if (!list) return;
+    list.innerHTML = '';
+    const nat = this.data.naturezas;
+    const labels = { fogo: 'Fogo', vento: 'Vento', agua: 'Água', relampago: 'Relâmpago', terra: 'Terra', mistura: 'Mistura', medicinal: 'Medicinal', fuinjutsu: 'Fuinjutsu' };
+    Object.keys(nat).forEach(k => {
+      const btn = document.createElement('button');
+      btn.className = 'natureza-btn' + (nat[k] ? ' on' : '');
+      btn.textContent = labels[k] || k;
+      btn.dataset.natureza = k;
+      list.appendChild(btn);
+    });
+  }
+
+  _jutsus() {
+    const c = this.$('jutsus-list');
+    if (!c) return;
+    c.innerHTML = '';
+    this.data.jutsus.forEach((j, i) => {
+      const card = document.createElement('div');
+      card.className = 'jutsu-card';
+      const hasDesc = j.descricao && j.descricao.trim();
+      card.innerHTML = `<div class="jutsu-header">
+        <input type="text" class="ji" value="${this._e(j.nome)}" placeholder="Nome" data-idx="${i}" data-field="nome">
+        <button class="rm" data-jutsu="${i}">&times;</button>
+      </div>
+      <div class="jutsu-subheader">
+        <input type="text" class="ji" value="${this._e(j.classificacao)}" placeholder="Classificação" data-idx="${i}" data-field="classificacao">
+        <span class="jutsu-rank-label">Rank <select class="ji jutsu-rank" data-idx="${i}" data-field="rank">
+          <option value="E"${j.rank==='E'?' selected':''}>E</option>
+          <option value="D"${j.rank==='D'?' selected':''}>D</option>
+          <option value="C"${j.rank==='C'?' selected':''}>C</option>
+          <option value="B"${j.rank==='B'?' selected':''}>B</option>
+          <option value="A"${j.rank==='A'?' selected':''}>A</option>
+          <option value="S"${j.rank==='S'?' selected':''}>S</option>
+        </select></span>
+      </div>
+      <div class="jutsu-fields">
+        <div class="jutsu-field"><label>Custo</label><input type="text" class="ji" value="${this._e(j.custo)}" data-idx="${i}" data-field="custo"></div>
+        <div class="jutsu-field"><label>Conjuração</label><input type="text" class="ji" value="${this._e(j.tempoConjuracao)}" data-idx="${i}" data-field="tempoConjuracao"></div>
+        <div class="jutsu-field"><label>Alcance</label><input type="text" class="ji" value="${this._e(j.alcance)}" data-idx="${i}" data-field="alcance"></div>
+        <div class="jutsu-field"><label>Duração</label><input type="text" class="ji" value="${this._e(j.duracao)}" data-idx="${i}" data-field="duracao"></div>
+        <div class="jutsu-field"><label>Componentes</label><input type="text" class="ji" value="${this._e(j.componentes)}" data-idx="${i}" data-field="componentes"></div>
+        <div class="jutsu-field"><label>Palavra-chave</label><input type="text" class="ji" value="${this._e(j.palavraChave)}" data-idx="${i}" data-field="palavraChave"></div>
+      </div>
+      <div class="jutsu-desc-row">
+        <button class="btn btn-sm jutsu-desc-btn${hasDesc ? ' has-detail' : ''}" data-idx="${i}">Descrição</button>
+      </div>`;
+      c.appendChild(card);
+    });
+  }
+
+  addJutsu() {
+    this.data.jutsus.push({ nome: '', classificacao: '', rank: 'E', custo: '', tempoConjuracao: '', alcance: '', duracao: '', componentes: '', palavraChave: '', descricao: '' });
+    this._save();
+    this._jutsus();
+  }
+
+  toggleNatureza(k) {
+    if (this.data.naturezas[k] !== undefined) {
+      this.data.naturezas[k] = !this.data.naturezas[k];
+      this._save();
+      this._naturezas();
+    }
+  }
+
+  openJutsuDesc(idx) {
+    const j = this.data.jutsus[idx];
+    if (!j) return;
+    const modal = this.$('jutsu-modal');
+    const textarea = this.$('jutsu-modal-textarea');
+    const title = this.$('jutsu-modal-title');
+    if (!modal || !textarea) return;
+    title.textContent = 'Descrição — ' + (j.classificacao || 'Jutsu');
+    textarea.value = j.descricao || '';
+    textarea.dataset.idx = idx;
+    modal.style.display = 'flex';
+  }
+
+  saveJutsuDesc() {
+    const textarea = this.$('jutsu-modal-textarea');
+    const modal = this.$('jutsu-modal');
+    if (!textarea || !modal) return;
+    const idx = parseInt(textarea.dataset.idx);
+    if (this.data.jutsus[idx]) {
+      this.data.jutsus[idx].descricao = textarea.value;
+    }
+    this._save();
+    modal.style.display = 'none';
+    this._jutsus();
+  }
+
+  _setJutsuField(el) {
+    const idx = parseInt(el.dataset.idx);
+    const field = el.dataset.field;
+    if (isNaN(idx) || !field) return;
+    if (!this.data.jutsus[idx]) return;
+    const val = el.tagName === 'SELECT' ? el.value : el.value;
+    this.data.jutsus[idx][field] = val;
   }
 
   _turnos() {
@@ -909,15 +1015,24 @@ class Sheet {
       const id = t.id;
       if (id) { this._handle(t, id, t.value); }
       else if (t.classList.contains('ii') || t.classList.contains('wi')) { this._setListItem(t); this._auto(); }
+      else if (t.classList.contains('ji')) { this._setJutsuField(t); this._auto(); }
       if (t.tagName === 'TEXTAREA') this._autoGrow(t);
     });
-    document.addEventListener('change', e => { const id = e.target.id; if (id && e.target.type === 'checkbox') this._handle(e.target, id, e.target.checked); });
+    document.addEventListener('change', e => {
+      const t = e.target;
+      const id = t.id;
+      if (id && t.type === 'checkbox') this._handle(t, id, t.checked);
+      if (t.classList.contains('ji')) { this._setJutsuField(t); this._auto(); }
+    });
 
     document.addEventListener('click', e => {
       const t = e.target;
       if (t.classList.contains('stog')) { this.openProfMenu(t.dataset.skill, t); return; }
       if (t.closest('.save-row') && t.tagName === 'BUTTON') { this.toggleSave(t.dataset.attr); return; }
       if (t.classList.contains('dot')) { this.toggleDeath(t); return; }
+      if (t.classList.contains('natureza-btn')) { this.toggleNatureza(t.dataset.natureza); return; }
+      if (t.classList.contains('jutsu-desc-btn')) { this.openJutsuDesc(parseInt(t.dataset.idx)); return; }
+      if (t.dataset.jutsu !== undefined) { this.data.jutsus.splice(parseInt(t.dataset.jutsu), 1); this._save(); this._jutsus(); return; }
       if (t.classList.contains('rm')) {
         const idx = parseInt(t.dataset.idx);
         if (isNaN(idx)) return;
@@ -952,6 +1067,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   document.getElementById('btn-add-weapon')?.addEventListener('click', () => window.sheet.addWeapon());
   document.getElementById('btn-add-item')?.addEventListener('click', () => window.sheet.addItem());
+  document.getElementById('btn-add-jutsu')?.addEventListener('click', () => window.sheet.addJutsu());
   document.getElementById('btn-export')?.addEventListener('click', () => window.sheet.exportJSON());
   document.getElementById('btn-save')?.addEventListener('click', () => window.sheet.syncSave());
   document.getElementById('btn-import')?.addEventListener('click', () => document.getElementById('import-file').click());
@@ -1077,6 +1193,11 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('feat-modal-ok')?.addEventListener('click', () => window.sheet.saveFeatureDetail());
   document.getElementById('feat-modal-cancel')?.addEventListener('click', () => { featModal.style.display = 'none'; });
   featModal?.addEventListener('click', e => { if (e.target === featModal) featModal.style.display = 'none'; });
+
+  const jutsuModal = document.getElementById('jutsu-modal');
+  document.getElementById('jutsu-modal-ok')?.addEventListener('click', () => window.sheet.saveJutsuDesc());
+  document.getElementById('jutsu-modal-cancel')?.addEventListener('click', () => { jutsuModal.style.display = 'none'; });
+  jutsuModal?.addEventListener('click', e => { if (e.target === jutsuModal) jutsuModal.style.display = 'none'; });
 
   const profMenu = document.getElementById('prof-menu');
   profMenu?.addEventListener('click', e => {

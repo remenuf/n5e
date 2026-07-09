@@ -26,6 +26,7 @@
     <button class="tab" data-tab="tab-i">Inventário</button>
     <button class="tab" data-tab="tab-n">Anotações</button>
     <button class="tab" data-tab="tab-t">Turno</button>
+    <button class="tab" data-tab="tab-j">Jutsus</button>
   </div>
 
   <!-- PRINCIPAL -->
@@ -367,6 +368,18 @@
       <div class="tbox"><div class="tl">T8</div><input type="checkbox" id="ct-salvo-7"><label>+PC</label><input type="number" id="ct-maisPC-7"><label>-PC</label><input type="number" id="ct-menosPC-7"><label>+PCT</label><input type="number" id="ct-maisPCT-7"><label>-PCT</label><input type="number" id="ct-menosPCT-7"></div>
     </div></div>
   </div>
+
+  <!-- JUTSUS -->
+  <div id="tab-j" class="tabc">
+    <div class="card">
+      <h2>Naturezas</h2>
+      <div class="natureza-row" id="natureza-list"></div>
+    </div>
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px"><h2 style="margin:0;border:none;padding:0">Jutsus</h2><button class="btn btn-sm" id="btn-add-jutsu">+ Jutsu</button></div>
+      <div id="jutsus-list"></div>
+    </div>
+  </div>
 </div>
 <div id="prof-menu" class="prof-menu hidden">
   <div class="prof-menu-item" data-val="">— Nenhuma</div>
@@ -397,6 +410,16 @@
     <div class="modal-actions">
       <button class="btn btn-g" id="pw-modal-ok">OK</button>
       <button class="btn" id="pw-modal-cancel">Cancelar</button>
+    </div>
+  </div>
+</div>
+<div id="jutsu-modal" class="modal" style="display:none">
+  <div class="modal-content">
+    <h2 id="jutsu-modal-title">Descrição do Jutsu</h2>
+    <textarea id="jutsu-modal-textarea" class="wide-ta" rows="10" placeholder="Descrição..."></textarea>
+    <div class="modal-actions">
+      <button class="btn btn-g" id="jutsu-modal-ok">OK</button>
+      <button class="btn" id="jutsu-modal-cancel">Cancelar</button>
     </div>
   </div>
 </div>

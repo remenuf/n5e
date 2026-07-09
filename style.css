@@ -205,6 +205,38 @@ textarea{resize:vertical;min-height:50px}
 .passives span{color:var(--muted)}
 .passives strong{color:var(--gold)}
 
+/* ─── Naturezas ─── */
+.natureza-row{display:flex;flex-wrap:wrap;gap:6px}
+.natureza-btn{background:var(--card2);border:1px solid var(--border);border-radius:5px;color:var(--muted);cursor:pointer;font-size:.72rem;font-weight:600;padding:5px 12px;transition:all .15s;text-transform:uppercase;letter-spacing:.4px}
+.natureza-btn:hover{border-color:var(--accent);color:var(--text)}
+.natureza-btn.on{color:#fff}
+.natureza-btn.on[data-natureza=fogo]{background:var(--accent);border-color:var(--accent)}
+.natureza-btn.on[data-natureza=vento]{background:var(--green);border-color:var(--green)}
+.natureza-btn.on[data-natureza=agua]{background:var(--blue);border-color:var(--blue)}
+.natureza-btn.on[data-natureza=relampago]{background:#eab308;border-color:#eab308;color:#111}
+.natureza-btn.on[data-natureza=terra]{background:#a16207;border-color:#a16207}
+.natureza-btn.on[data-natureza=mistura]{background:var(--purple);border-color:var(--purple)}
+.natureza-btn.on[data-natureza=medicinal]{background:#22d3ee;border-color:#22d3ee;color:#111}
+.natureza-btn.on[data-natureza=fuinjutsu]{background:#6b21a8;border-color:#6b21a8}
+
+/* ─── Jutsu Cards ─── */
+#jutsus-list{display:flex;flex-wrap:wrap;gap:8px}
+.jutsu-card{background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;flex:0 0 calc(33.333% - 6px);min-width:0}
+.jutsu-header{display:flex;align-items:center;gap:6px;margin-bottom:4px}
+.jutsu-header input{flex:1;font-size:.8rem;padding:4px 6px;font-weight:600}
+.jutsu-subheader{display:flex;align-items:center;gap:6px;margin-bottom:6px;padding-bottom:5px;border-bottom:1px solid var(--border)}
+.jutsu-subheader input{flex:1;font-size:.72rem;padding:3px 5px}
+.jutsu-rank-label{font-size:.68rem;color:var(--muted);text-transform:uppercase;font-weight:600;letter-spacing:.3px;white-space:nowrap;display:flex;align-items:center;gap:3px}
+.jutsu-rank{background:var(--input);border:1px solid var(--border);border-radius:4px;color:var(--text);padding:2px 4px;font-size:.72rem;cursor:pointer;min-width:40px;width:44px}
+.jutsu-fields{display:grid;grid-template-columns:1fr 1fr;gap:3px 8px}
+.jutsu-field{display:flex;flex-direction:column;gap:1px}
+.jutsu-field label{font-size:.52rem;color:var(--muted);text-transform:uppercase;font-weight:600;letter-spacing:.2px}
+.jutsu-field input{font-size:.68rem;padding:2px 4px;width:100%}
+.jutsu-desc-row{margin-top:5px;padding-top:5px;border-top:1px solid var(--border);display:flex;gap:6px}
+.jutsu-desc-btn{font-size:.65rem;padding:2px 8px}
+.jutsu-desc-btn.has-detail{background:var(--green);border-color:var(--green);color:#fff}
+.jutsu-desc-btn.btn:hover{background:var(--fire);border-color:var(--fire);color:#fff}
+
 /* ─── Prof Menu ─── */
 .prof-menu{position:fixed;z-index:1000;background:var(--card);border:1px solid var(--border2);border-radius:6px;padding:4px 0;min-width:160px;box-shadow:0 8px 24px rgba(0,0,0,.5)}
 .prof-menu.hidden{display:none}
@@ -359,4 +391,9 @@ textarea{resize:vertical;min-height:50px}
   .nin-row{grid-template-columns:1fr}
   .res-row{grid-template-columns:1fr}
   .traits-grid{grid-template-columns:1fr}
+  .jutsu-fields{grid-template-columns:1fr}
+  .jutsu-card{flex:0 0 calc(50% - 4px)}
+}
+@media(max-width:480px){
+  .jutsu-card{flex:0 0 100%}
 }
